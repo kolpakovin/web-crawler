@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+from datetime import date
+from database import Database
 
 
 class Crawler:
@@ -67,18 +69,43 @@ class Crawler:
             self.get_and_save_firmware_links_from_the_page(page)
         return 
 
-    def get_date_of_submit(self, year, month):
-        pass
+    def get_date_of_submit(self, year, months):
+        today = date.today()
+        if int(months) >= today.month:
+            return  str(today.year - int(year) - 1) + '-' + str(today.month + 12 - int(months)) 
+        return str(today.year - int(year)) + '-' + str(today.month - int(months))
 
     def get_metadata_from_link(self, url):
-        pass
+        soup = self.get_page_content(url)
+        device_name = soup.find('div', class_='field-name-title').text
+        last_modified = None
+        if self.get_element_from_content(soup, 'div', ' field-name-changed-date') is not None:
+            last_modified = soup.find('div', class_='field field-name-changed-date').find('div', class_='field-item even').text
+        submittion = self.get_element_from_content(soup, 'div', 'field-name-submitted-by').text
+        submitted_day = submittion.split(' ')[1:4:2]
+        submitted_day = self.get_date_of_submit(submitted_day[0], submitted_day[1])
+        submitted_by = submittion.split(' ')[-1][:-1]
+        brand = self.get_element_from_content(soup, 'div', 'field-name-field-brand').find( 'div', class_='field-item even').text
+        model = self.get_element_from_content(soup, 'div', 'field-name-field-model').find( 'div', class_='field-item even').text
+        return [url, device_name, last_modified, submitted_day, submitted_by, brand, model]
 
-    def add_to_db(self):
-        pass
+    def add_to_db(self, url, device_name, last_modified, submitted_day, submitted_by, brand, model):
+        Database.insert('metadata', {
+            'url': url,
+            'device_name': device_name,
+            'last_modified': last_modified,
+            'submitted_day': submitted_day,
+            'submitted_by': submitted_by,
+            'brand': brand,
+            'model': model
+        })
+        return 
     
     def get_metadata_and_add_to_db(self):
-        pass
-    
+        for firmware_link in self.firmware_files_links:
+            self.add_to_db(*self.get_metadata_from_link(firmware_link)) # I unpack arguments and call self.add_to_db function
+        return
+
     def check_changes(self, url):
         pass
 
