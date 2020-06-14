@@ -42,7 +42,7 @@ class Crawler:
         self.pages.append(self.get_firmware_downloads_link()) 
         temp_url = self.firmware_downloads_url
         while temp_url:
-            if 'rockchiofirmware' in temp_url:
+            if 'rockchiofirmware' in temp_url: # if this is a self.firmware_downloads_url
                 temp_url = self.get_next_page_link(temp_url)
                 self.pages.append(self.website_url + temp_url)
             else:
@@ -52,11 +52,20 @@ class Crawler:
         return self.pages
 
 
-    def get_firmware_links_from_the_page(self, url):
-        pass
-    
+    def get_and_save_firmware_links_from_the_page(self, url):
+        soup = self.get_page_content(url)
+        table = self.get_elements_from_content(soup, 'td', 'views-field views-field-title')
+        for firmware_link in table:
+            self.firmware_files_links.append(self.website_url + firmware_link.find('a')['href'].replace('\\', '/'))
+            # the line above is long, but you can see there are very simple actions:
+            # I just concatenate the website url with the link for specific firmware file
+            # and replace '\\' to '/' because it's url I want to visit after
+        return
+
     def get_firmware_links(self):
-        pass
+        for page in self.pages:
+            self.get_and_save_firmware_links_from_the_page(page)
+        return 
 
     def get_date_of_submit(self, year, month):
         pass
