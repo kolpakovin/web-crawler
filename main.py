@@ -124,7 +124,6 @@ class Crawler:
                 id = ''
                 for itm in Database.find('pages', { 'url': url}):
                     id = itm.get('_id')
-                print(id)
                 Database.update('pages', ObjectId(id), { '$set' : { 'url': url,
                     'device_name': device_name,
                     'last_modified': last_modified,
