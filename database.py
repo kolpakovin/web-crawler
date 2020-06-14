@@ -6,20 +6,24 @@ class Database:
 
     @staticmethod
     def initialize():
-        pass
+        client = pymongo.MongoClient(Database.URI)
+        Database.DATABASE = client['firmwaredb']
 
     @staticmethod
     def insert(collection, data):
-        pass
+        Database.DATABASE[collection].insert_one(data)
 
     @staticmethod
-    def find():
-        pass
+    def find(collection, query):
+        return Database.DATABASE[collection].find(query)
 
     @staticmethod
-    def update():
-        pass
+    def update(collection, query, data):
+        return Database.DATABASE[collection].update_one({'_id': query}, data)
 
     @staticmethod
-    def count_documents():
-        pass
+    def count_documents(collection, data):
+        return Database.DATABASE[collection].count_documents(data)
+
+
+Database.initialize()
