@@ -4,6 +4,7 @@ from datetime import date
 from database import Database
 import sys
 import time
+from bson.objectid import ObjectId
 
 
 
@@ -112,10 +113,42 @@ class Crawler:
         return
 
     def check_changes(self, url):
-        pass
+        url, device_name, last_modified, submitted_day, submitted_by, brand, model = self.get_metadata_from_link(url)
+        doc_counter = Database.count_documents('metadata', { 'url': url,
+            'device_name': device_name,
+            'last_modified': last_modified,
+            'submitted_day': submitted_day,
+            'submitted_by': submitted_by,
+            'brand': brand,
+            'model': model })
+        if doc_counter == 0:
+                id = ''
+                for itm in Database.find('pages', { 'url': url}):
+                    id = itm.get('_id')
+                print(id)
+                Database.update('pages', ObjectId(id), { '$set' : { 'url': url,
+                    'device_name': device_name,
+                    'last_modified': last_modified,
+                    'submitted_day': submitted_day,
+                    'submitted_by': submitted_by,
+                    'brand': brand,
+                    'model': model }})
+                return 1
+        return 0
 
     def check_metadata_for_all_firmware_links(self):
-        pass
+        counter = 0
+        self.get_pages()
+        self.get_firmware_links()
+        for firmware_link in self.firmware_files_links:
+            counter += self.check_changes(firmware_link)
+        if counter == 0:
+            print('There are no changes in firmware files')
+        if counter == 1:
+            print("1 firmware file was changed")
+        elif counter > 1:
+            print("There are " + str(counter) + "firmware files been changed")
+        return
 
     def print_summary(self):
         pass
@@ -126,5 +159,7 @@ class Crawler:
         self.get_firmware_links()
         self.get_metadata_and_add_to_db()
         finish = time.perf_counter()
-        print("Finished in" ,{round(finish - start, 2)}, "seconds")
+        print("Finished in" , round(finish - start, 2), "seconds")
 
+my_crawler = Crawler(sys.argv[-1])
+my_crawler.check_metadata_for_all_firmware_links()
