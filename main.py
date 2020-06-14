@@ -6,7 +6,7 @@ class Crawler:
 
     def __init__(self,url):
         self.website_url = url
-        self.firmware_downloads = ''
+        self.firmware_downloads_url = ''
         self.pages = []
         self.firmware_files_links = []
 
@@ -27,16 +27,31 @@ class Crawler:
     def get_firmware_downloads_link(self):
         soup = self.get_page_content(self.website_url)
         the_link = self.get_element_from_content(soup, 'tr').find('a')['href']
-        self.firmware_downloads = self.website_url + the_link
-        return self.firmware_downloads
-
+        self.firmware_downloads_url = self.website_url + the_link
+        return self.firmware_downloads_url
 
     def get_next_page_link(self, url):
-        pass
+        soup = self.get_page_content(url)
+        try:
+            next_page_link = soup.find('li', class_='pages-next last').find('a')['href']
+        except TypeError:
+            return False   # if there is no link I catch the error and return False
+        return next_page_link
     
     def get_pages(self):
-        pass
-    
+        self.pages.append(self.get_firmware_downloads_link()) 
+        temp_url = self.firmware_downloads_url
+        while temp_url:
+            if 'rockchiofirmware' in temp_url:
+                temp_url = self.get_next_page_link(temp_url)
+                self.pages.append(self.website_url + temp_url)
+            else:
+                temp_url = self.get_next_page_link(self.website_url + temp_url)
+                if temp_url != False:
+                    self.pages.append(self.website_url + temp_url)
+        return self.pages
+
+
     def get_firmware_links_from_the_page(self, url):
         pass
     
