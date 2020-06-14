@@ -35,7 +35,6 @@ class Crawler:
         soup = self.get_page_content(self.website_url)
         the_link = self.get_element_from_content(soup, 'tr').find('a')['href']
         self.firmware_downloads_url = self.website_url + the_link
-        print(self.firmware_downloads_url, 'ggggg')
         return self.firmware_downloads_url
 
     def get_next_page_link(self, url):
@@ -151,7 +150,18 @@ class Crawler:
         return
 
     def print_summary(self):
-        pass
+        firebase_amount = Database.count_documents('metadata', {})
+        PiPO = Database.count_documents('metadata', { 'brand': 'PiPO'})
+        Cube  = Database.count_documents('metadata', { 'brand': 'Cube'})
+        Yuandao = Database.count_documents('metadata', { 'brand': 'Yuandao'})
+        Ployer = Database.count_documents('metadata', { 'brand': 'Ployer'})
+        Teclast = Database.count_documents('metadata', { 'brand': 'Teclast'})
+        d = { 'Cube': Cube, 'PiPO': PiPO, 'Ployer': Ployer, 'Teclast': Teclast, 'Yuandao': Yuandao}
+        print('There are', firebase_amount, 'firmware files in the database')
+        print('The most popular brands are:')
+        for key, value in d.items():
+            print(value, key, 'brands') 
+        return 
 
     def start_web_crawler(self):
         start = time.perf_counter()
@@ -161,5 +171,17 @@ class Crawler:
         finish = time.perf_counter()
         print("Finished in" , round(finish - start, 2), "seconds")
 
-my_crawler = Crawler(sys.argv[-1])
-my_crawler.check_metadata_for_all_firmware_links()
+if __name__ == '__main__':
+    if sys.argv[-1] != 'https://www.rockchipfirmware.com/':
+        print('Incorect website url. Please try again.')
+    else:
+        my_crawler = Crawler(sys.argv[-1])
+        action = sys.argv[1]
+        if action == 'start_web_crawler':
+            my_crawler.start_web_crawler()
+        elif action == 'check_changes':
+            my_crawler.check_metadata_for_all_firmware_links()
+        elif action == 'summary':
+            my_crawler.print_summary()
+        else:
+            print('Something went wrong. It happens to the best of us.')
