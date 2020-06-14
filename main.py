@@ -35,7 +35,6 @@ class Crawler:
         soup = self.get_page_content(self.website_url)
         the_link = self.get_element_from_content(soup, 'tr').find('a')['href']
         self.firmware_downloads_url = self.website_url + the_link
-        print(self.firmware_downloads_url, 'ggggg')
         return self.firmware_downloads_url
 
     def get_next_page_link(self, url):
@@ -172,3 +171,17 @@ class Crawler:
         finish = time.perf_counter()
         print("Finished in" , round(finish - start, 2), "seconds")
 
+if __name__ == '__main__':
+    if sys.argv[-1] != 'https://www.rockchipfirmware.com/':
+        print('Incorect website url. Please try again.')
+    else:
+        my_crawler = Crawler(sys.argv[-1])
+        action = sys.argv[1]
+        if action == 'start_web_crawler':
+            my_crawler.start_web_crawler()
+        elif action == 'check_changes':
+            my_crawler.check_metadata_for_all_firmware_links()
+        elif action == 'summary':
+            my_crawler.print_summary()
+        else:
+            print('Something went wrong. It happens to the best of us.')
