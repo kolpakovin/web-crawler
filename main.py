@@ -2,6 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import date
 from database import Database
+import sys
+import time
+
+
 
 
 class Crawler:
@@ -30,21 +34,22 @@ class Crawler:
         soup = self.get_page_content(self.website_url)
         the_link = self.get_element_from_content(soup, 'tr').find('a')['href']
         self.firmware_downloads_url = self.website_url + the_link
+        print(self.firmware_downloads_url, 'ggggg')
         return self.firmware_downloads_url
 
     def get_next_page_link(self, url):
         soup = self.get_page_content(url)
         try:
-            next_page_link = soup.find('li', class_='pages-next last').find('a')['href']
+            next_page_link = soup.find('li', class_='pager-next last').find('a')['href']
         except TypeError:
             return False   # if there is no link I catch the error and return False
         return next_page_link
     
     def get_pages(self):
-        self.pages.append(self.get_firmware_downloads_link()) 
-        temp_url = self.firmware_downloads_url
+        temp_url = self.get_firmware_downloads_link()
+        self.pages.append(temp_url) 
         while temp_url:
-            if 'rockchiofirmware' in temp_url: # if this is a self.firmware_downloads_url
+            if 'rockchipfirmware' in temp_url: # if this is a self.firmware_downloads_url
                 temp_url = self.get_next_page_link(temp_url)
                 self.pages.append(self.website_url + temp_url)
             else:
@@ -116,5 +121,10 @@ class Crawler:
         pass
 
     def start_web_crawler(self):
-        pass
+        start = time.perf_counter()
+        self.get_pages()
+        self.get_firmware_links()
+        self.get_metadata_and_add_to_db()
+        finish = time.perf_counter()
+        print("Finished in" ,{round(finish - start, 2)}, "seconds")
 
