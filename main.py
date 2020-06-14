@@ -151,7 +151,18 @@ class Crawler:
         return
 
     def print_summary(self):
-        pass
+        firebase_amount = Database.count_documents('metadata', {})
+        PiPO = Database.count_documents('metadata', { 'brand': 'PiPO'})
+        Cube  = Database.count_documents('metadata', { 'brand': 'Cube'})
+        Yuandao = Database.count_documents('metadata', { 'brand': 'Yuandao'})
+        Ployer = Database.count_documents('metadata', { 'brand': 'Ployer'})
+        Teclast = Database.count_documents('metadata', { 'brand': 'Teclast'})
+        d = { 'Cube': Cube, 'PiPO': PiPO, 'Ployer': Ployer, 'Teclast': Teclast, 'Yuandao': Yuandao}
+        print('There are', firebase_amount, 'firmware files in the database')
+        print('The most popular brands are:')
+        for key, value in d.items():
+            print(value, key, 'brands') 
+        return 
 
     def start_web_crawler(self):
         start = time.perf_counter()
@@ -161,5 +172,3 @@ class Crawler:
         finish = time.perf_counter()
         print("Finished in" , round(finish - start, 2), "seconds")
 
-my_crawler = Crawler(sys.argv[-1])
-my_crawler.check_metadata_for_all_firmware_links()
